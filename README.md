@@ -1,7 +1,7 @@
 # BG Ultimate (WoW Classic 1.14)
 
 A lightweight PvP utility addon that combines **cinematic battleground countdown sounds** with a **modern Battleground control panel** and quick-access UI button.
-
+![BG Panel](panel.png)
 ---
 
 ## 🔥 Features
