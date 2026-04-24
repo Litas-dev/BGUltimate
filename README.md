@@ -2,7 +2,7 @@
 
 A lightweight PvP utility addon that combines **cinematic battleground countdown sounds** with a **modern Battleground control panel** and quick-access UI button.
 ---
-![BG Panel](panel.png)
+![BG Panel](https://github.com/Litas-dev/BGUltimate/blob/main/panel.png)
 ---
 
 ## 🔥 Features
