@@ -1,5 +1,5 @@
 -- =========================
--- BG ULTIMATE ADDON (PNG UI VERSION)
+-- BG ULTIMATE ADDON (CLEAN UI v2)
 -- =========================
 
 local f = CreateFrame("Frame")
@@ -28,69 +28,55 @@ local function playIntro()
 end
 
 -- =========================
--- PANEL (PNG BASED)
+-- PANEL (BLIZZARD STYLE)
 -- =========================
-local panel = CreateFrame("Frame", "BGPanelFrame", UIParent)
-panel:SetSize(600, 400) -- adjust if needed
+local panel = CreateFrame("Frame", "BGPanelFrame", UIParent, "UIPanelDialogTemplate")
+panel:SetSize(420, 320)
 panel:SetPoint("CENTER")
 panel:Hide()
 
 table.insert(UISpecialFrames, "BGPanelFrame")
 
--- BACKGROUND IMAGE (YOUR PNG)
-panel.bg = panel:CreateTexture(nil, "BACKGROUND")
-panel.bg:SetAllPoints()
-panel.bg:SetTexture("Interface\\AddOns\\BGUltimate\\media\\bg.png")
-panel.bg:SetBlendMode("BLEND")
--- =========================
--- TITLE
--- =========================
-local title = panel:CreateFontString(nil, "OVERLAY")
-title:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
-title:SetPoint("TOP", 0, -30)
-title:SetText("Battleground Finder")
+-- Proper title placement (no overlap)
+local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+title:SetPoint("TOP", panel, "TOP", 0, -28)
+title:SetText("Battlegrounds")
 title:SetTextColor(1, 0.82, 0)
 
 -- =========================
--- BUTTON CREATOR (CENTERED)
+-- BUTTON CREATOR (TOP ANCHORED)
 -- =========================
-local function CreateButton(text, y, cmd)
-    local b = CreateFrame("Button", nil, panel)
-    b:SetSize(260, 40)
-    b:SetPoint("CENTER", 0, y)
+local function CreateButton(text, index, cmd)
+    local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    b:SetSize(240, 32)
 
-    -- background
-    local bg = b:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.2, 0.05, 0.05, 0.9)
+    -- Proper spacing from top
+    b:SetPoint("TOP", panel, "TOP", 0, -70 - (index * 45))
 
-    -- hover
-    local hover = b:CreateTexture(nil, "HIGHLIGHT")
-    hover:SetAllPoints()
-    hover:SetColorTexture(1, 0, 0, 0.15)
+    b:SetText(text)
 
-    -- text
-    local txt = b:CreateFontString(nil, "OVERLAY")
-    txt:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
-    txt:SetPoint("CENTER")
-    txt:SetText(text)
-    txt:SetTextColor(1, 0.8, 0)
+    -- Font
+    b:GetFontString():SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
+    b:GetFontString():SetTextColor(1, 0.82, 0)
 
-    -- click
+    -- Hover glow
+    local glow = b:CreateTexture(nil, "HIGHLIGHT")
+    glow:SetTexture("Interface\\Buttons\\UI-Panel-Button-Highlight")
+    glow:SetBlendMode("ADD")
+    glow:SetAllPoints()
+
+    -- Click
     b:SetScript("OnClick", function()
         SendChatMessage(cmd, "SAY")
-        PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE)
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
         panel:Hide()
     end)
-
-    -- make sure it's above background
-    b:SetFrameLevel(panel:GetFrameLevel() + 5)
 end
 
--- BUTTONS
-CreateButton("Warsong Gulch", 40, ".go warsong")
-CreateButton("Arathi Basin", 0, ".go arathi")
-CreateButton("Alterac Valley", -40, ".go alterac")
+-- BUTTONS (clean spacing)
+CreateButton("Warsong Gulch", 0, ".go warsong")
+CreateButton("Arathi Basin", 1, ".go arathi")
+CreateButton("Alterac Valley", 2, ".go alterac")
 
 -- =========================
 -- MAIN BUTTON (BOTTOM RIGHT)
@@ -98,7 +84,6 @@ CreateButton("Alterac Valley", -40, ".go alterac")
 local bgBtn = CreateFrame("Button", "BGLFGButton", UIParent)
 bgBtn:SetSize(36, 36)
 bgBtn:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -90, 40)
-
 bgBtn:SetFrameStrata("HIGH")
 
 -- background
@@ -139,7 +124,7 @@ end)
 -- tooltip
 bgBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText("Battleground Finder")
+    GameTooltip:SetText("Battlegrounds")
     GameTooltip:AddLine("Ready for battle", 1, 0.8, 0)
     GameTooltip:Show()
 end)
