@@ -1,5 +1,6 @@
-
--- BG ULTIMATE ADDON 
+-- =========================
+-- BG ULTIMATE ADDON (PNG UI VERSION)
+-- =========================
 
 local f = CreateFrame("Frame")
 
@@ -9,15 +10,15 @@ f:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 local triggered = false
 
-
+-- =========================
 -- CONFIG
-
+-- =========================
 local COUNTDOWN_DELAY = 19
 local COUNTDOWN_LENGTH = 10
 
-
+-- =========================
 -- SOUNDS
-
+-- =========================
 local function playCountdown()
     PlaySoundFile("Interface\\AddOns\\BGUltimate\\sounds\\10.ogg", "Master")
 end
@@ -26,52 +27,37 @@ local function playIntro()
     PlaySoundFile("Interface\\AddOns\\BGUltimate\\sounds\\intro.ogg", "Master")
 end
 
-
--- PANEL 
-
+-- =========================
+-- PANEL (PNG BASED)
+-- =========================
 local panel = CreateFrame("Frame", "BGPanelFrame", UIParent)
-panel:SetSize(420, 300)
+panel:SetSize(600, 400) -- adjust if needed
 panel:SetPoint("CENTER")
 panel:Hide()
 
 table.insert(UISpecialFrames, "BGPanelFrame")
 
--- DARK BACKGROUND
+-- BACKGROUND IMAGE (YOUR PNG)
 panel.bg = panel:CreateTexture(nil, "BACKGROUND")
 panel.bg:SetAllPoints()
-panel.bg:SetColorTexture(0.05, 0.05, 0.05, 0.95)
-
--- GRADIENT
-panel.gradient = panel:CreateTexture(nil, "ARTWORK")
-panel.gradient:SetAllPoints()
-panel.gradient:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-panel.gradient:SetGradientAlpha("VERTICAL",
-    0,0,0,0.2,
-    0,0,0,0.8
-)
-
--- BORDER (thin gold)
-panel.border = CreateFrame("Frame", nil, panel, "BackdropTemplate")
-panel.border:SetAllPoints()
-panel.border:SetBackdrop({
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-    edgeSize = 12,
-})
-panel.border:SetBackdropBorderColor(0.8, 0.6, 0, 0.8)
-
+panel.bg:SetTexture("Interface\\AddOns\\BGUltimate\\media\\bg.blp")
+panel.bg:SetBlendMode("BLEND")
+-- =========================
 -- TITLE
+-- =========================
 local title = panel:CreateFontString(nil, "OVERLAY")
 title:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
-title:SetPoint("TOP", 0, -15)
+title:SetPoint("TOP", 0, -30)
 title:SetText("Battleground Finder")
 title:SetTextColor(1, 0.82, 0)
 
--- BUTTONS
-
+-- =========================
+-- BUTTON CREATOR (CENTERED)
+-- =========================
 local function CreateButton(text, y, cmd)
     local b = CreateFrame("Button", nil, panel)
     b:SetSize(260, 40)
-    b:SetPoint("TOP", 0, y)
+    b:SetPoint("CENTER", 0, y)
 
     -- background
     local bg = b:CreateTexture(nil, "BACKGROUND")
@@ -92,29 +78,33 @@ local function CreateButton(text, y, cmd)
 
     -- click
     b:SetScript("OnClick", function()
-    SendChatMessage(cmd, "SAY")
-    PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE)
-    panel:Hide()
+        SendChatMessage(cmd, "SAY")
+        PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE)
+        panel:Hide()
     end)
+
+    -- make sure it's above background
+    b:SetFrameLevel(panel:GetFrameLevel() + 5)
 end
 
-CreateButton("Warsong Gulch", -70, ".go warsong")
-CreateButton("Arathi Basin", -120, ".go arathi")
-CreateButton("Alterac Valley", -170, ".go alterac")
+-- BUTTONS
+CreateButton("Warsong Gulch", 40, ".go warsong")
+CreateButton("Arathi Basin", 0, ".go arathi")
+CreateButton("Alterac Valley", -40, ".go alterac")
 
--- MAIN BUTTON 
-
+-- =========================
+-- MAIN BUTTON (BOTTOM RIGHT)
+-- =========================
 local bgBtn = CreateFrame("Button", "BGLFGButton", UIParent)
 bgBtn:SetSize(36, 36)
 bgBtn:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -90, 40)
 
 bgBtn:SetFrameStrata("HIGH")
-bgBtn:SetFrameLevel(10)
 
 -- background
-local bg = bgBtn:CreateTexture(nil, "BACKGROUND")
-bg:SetAllPoints()
-bg:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+local btnBG = bgBtn:CreateTexture(nil, "BACKGROUND")
+btnBG:SetAllPoints()
+btnBG:SetTexture("Interface\\Buttons\\UI-Quickslot2")
 
 -- icon
 local icon = bgBtn:CreateTexture(nil, "ARTWORK")
@@ -160,8 +150,9 @@ end)
 
 bgBtn:Show()
 
+-- =========================
 -- PULSE EFFECT
-
+-- =========================
 local pulse = bgBtn:CreateAnimationGroup()
 
 local fade1 = pulse:CreateAnimation("Alpha")
@@ -179,7 +170,9 @@ fade2:SetOrder(2)
 pulse:SetLooping("REPEAT")
 pulse:Play()
 
+-- =========================
 -- BG COUNTDOWN
+-- =========================
 f:SetScript("OnEvent", function(self, event, msg)
 
     if event == "PLAYER_ENTERING_WORLD" then
