@@ -40,7 +40,7 @@ table.insert(UISpecialFrames, "BGPanelFrame")
 -- BACKGROUND IMAGE (YOUR PNG)
 panel.bg = panel:CreateTexture(nil, "BACKGROUND")
 panel.bg:SetAllPoints()
-panel.bg:SetTexture("Interface\\AddOns\\BGUltimate\\media\\bg.blp")
+panel.bg:SetTexture("Interface\\AddOns\\BGUltimate\\media\\bg.png")
 panel.bg:SetBlendMode("BLEND")
 -- =========================
 -- TITLE
