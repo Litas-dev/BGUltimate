@@ -128,14 +128,7 @@ local function UpdateTrackerUI()
         return
     end
 
-    honorText:SetText(string.format("Honor earned: %d", tracker.honorEarned))
-
-    if tracker.avTimerStartedAt then
-        local elapsed = math.max(0, math.floor(GetTime() - tracker.avTimerStartedAt))
-        timerText:SetText(string.format("Timer: %d sec since start", elapsed))
-    else
-        timerText:SetText("Timer: waiting for battleground start")
-    end
+    honorText:SetText(string.format("|cffFFD24CHonor Earned:|r %d", tracker.honorEarned))
 
     local names = {}
     for name, _ in pairs(tracker.flaggedPlayers) do
@@ -144,10 +137,17 @@ local function UpdateTrackerUI()
 
     table.sort(names)
 
-    if #names == 0 then
-        suspectsText:SetText("No suspicious players yet")
+    local elapsed = 0
+    if tracker.avTimerStartedAt then
+        elapsed = GetTime() - tracker.avTimerStartedAt
+    end
+
+    if elapsed < AV_ZERO_HK_THRESHOLD_SECONDS or #names == 0 then
+        suspectsText:SetText("")
+        avTrackerFrame:SetHeight(64)
     else
-        suspectsText:SetText("No-HK after 5m: " .. table.concat(names, ", "))
+        suspectsText:SetText("|cffff6b6bSuspicious (0 HK after 15m):|r " .. table.concat(names, ", "))
+        avTrackerFrame:SetHeight(120)
     end
 end
 
@@ -325,7 +325,7 @@ f:SetScript("OnEvent", function(self, event, msg)
         if elapsed >= AV_ZERO_HK_THRESHOLD_SECONDS then
             for i = 1, GetNumBattlefieldScores() do
                 local name, _, honorableKills = GetBattlefieldScore(i)
-                if name and honorableKills == 0 then
+                if name and honorableKills == 0 and not string.find(name, "*", 1, true) then
                     tracker.flaggedPlayers[name] = true
                 end
             end
