@@ -18,7 +18,7 @@ local triggered = false
 -- =========================
 local COUNTDOWN_DELAY = 19
 local COUNTDOWN_LENGTH = 10
-local AV_ZERO_HK_THRESHOLD_SECONDS = 900
+local AV_ZERO_HK_THRESHOLD_SECONDS = 300
 
 -- =========================
 -- SOUNDS
@@ -147,7 +147,7 @@ local function UpdateTrackerUI()
     if #names == 0 then
         suspectsText:SetText("No suspicious players yet")
     else
-        suspectsText:SetText("No-HK after 15m: " .. table.concat(names, ", "))
+        suspectsText:SetText("No-HK after 5m: " .. table.concat(names, ", "))
     end
 end
 
@@ -325,7 +325,7 @@ f:SetScript("OnEvent", function(self, event, msg)
         if elapsed >= AV_ZERO_HK_THRESHOLD_SECONDS then
             for i = 1, GetNumBattlefieldScores() do
                 local name, _, honorableKills = GetBattlefieldScore(i)
-                if name and honorableKills == 0 and not string.find(name, "*", 1, true) then
+                if name and honorableKills == 0 then
                     tracker.flaggedPlayers[name] = true
                 end
             end
