@@ -79,26 +79,24 @@ end
 -- =========================
 -- AV TRACKER UI
 -- =========================
-local avTrackerFrame = CreateFrame("Frame", "BGAVTrackerFrame", UIParent)
-avTrackerFrame:SetSize(220, 64)
+local avTrackerFrame = CreateFrame("Frame", "BGAVTrackerFrame", UIParent, "BackdropTemplate")
+avTrackerFrame:SetSize(260, 120)
 avTrackerFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -24, -220)
 avTrackerFrame:SetMovable(true)
 avTrackerFrame:EnableMouse(true)
 avTrackerFrame:RegisterForDrag("LeftButton")
 avTrackerFrame:SetScript("OnDragStart", avTrackerFrame.StartMoving)
 avTrackerFrame:SetScript("OnDragStop", avTrackerFrame.StopMovingOrSizing)
-if avTrackerFrame.SetBackdrop then
-    avTrackerFrame:SetBackdrop({
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-        tile = true,
-        tileSize = 16,
-        edgeSize = 12,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })
-    avTrackerFrame:SetBackdropColor(0, 0, 0, 0.7)
-    avTrackerFrame:SetBackdropBorderColor(0.8, 0.8, 0.8, 0.9)
-end
+avTrackerFrame:SetBackdrop({
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+    tile = true,
+    tileSize = 16,
+    edgeSize = 12,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 },
+})
+avTrackerFrame:SetBackdropColor(0, 0, 0, 0.7)
+avTrackerFrame:SetBackdropBorderColor(0.8, 0.8, 0.8, 0.9)
 avTrackerFrame:Hide()
 
 local avTitle = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -108,17 +106,19 @@ avTitle:SetText("AV Tracker")
 local honorText = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 honorText:SetPoint("TOPLEFT", avTitle, "BOTTOMLEFT", 0, -8)
 honorText:SetJustifyH("LEFT")
-honorText:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
-honorText:SetTextColor(1, 0.82, 0)
-honorText:SetShadowOffset(1, -1)
-honorText:SetText("|cffFFD24CHonor Earned:|r 0")
+honorText:SetText("Honor earned: 0")
+
+local timerText = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+timerText:SetPoint("TOPLEFT", honorText, "BOTTOMLEFT", 0, -6)
+timerText:SetJustifyH("LEFT")
+timerText:SetText("Timer: waiting for battleground start")
 
 local suspectsText = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-suspectsText:SetPoint("TOPLEFT", honorText, "BOTTOMLEFT", 0, -8)
-suspectsText:SetWidth(196)
+suspectsText:SetPoint("TOPLEFT", timerText, "BOTTOMLEFT", 0, -8)
+suspectsText:SetWidth(236)
 suspectsText:SetJustifyH("LEFT")
 suspectsText:SetJustifyV("TOP")
-suspectsText:SetText("")
+suspectsText:SetText("No suspicious players yet")
 
 local function UpdateTrackerUI()
     if tracker.inAV then
