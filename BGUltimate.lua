@@ -18,7 +18,7 @@ local triggered = false
 -- =========================
 local COUNTDOWN_DELAY = 19
 local COUNTDOWN_LENGTH = 10
-local AV_ZERO_HK_THRESHOLD_SECONDS = 300
+local AV_ZERO_HK_THRESHOLD_SECONDS = 900
 
 -- =========================
 -- SOUNDS
