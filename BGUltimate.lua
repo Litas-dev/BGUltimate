@@ -6,7 +6,10 @@ local f = CreateFrame("Frame")
 
 -- EVENTS
 f:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+f:RegisterEvent("CHAT_MSG_COMBAT_HONOR_GAIN")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
+f:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+f:RegisterEvent("UPDATE_BATTLEFIELD_SCORE")
 
 local triggered = false
 
@@ -15,6 +18,7 @@ local triggered = false
 -- =========================
 local COUNTDOWN_DELAY = 19
 local COUNTDOWN_LENGTH = 10
+local AV_ZERO_HK_THRESHOLD_SECONDS = 300
 
 -- =========================
 -- SOUNDS
@@ -25,6 +29,149 @@ end
 
 local function playIntro()
     PlaySoundFile("Interface\\AddOns\\BGUltimate\\sounds\\intro.ogg", "Master")
+end
+
+-- =========================
+-- AV TRACKER STATE
+-- =========================
+local tracker = {
+    honorEarned = 0,
+    avTimerStartedAt = nil,
+    flaggedPlayers = {},
+    inAV = false,
+}
+
+local trackerTicker = nil
+
+local function IsInAlteracValley()
+    return GetRealZoneText() == "Alterac Valley"
+end
+
+local function ResetTracker()
+    tracker.honorEarned = 0
+    tracker.avTimerStartedAt = nil
+    wipe(tracker.flaggedPlayers)
+end
+
+local function EnsureAVTicker()
+    if trackerTicker then
+        return
+    end
+
+    trackerTicker = C_Timer.NewTicker(10, function()
+        if not tracker.inAV then
+            return
+        end
+
+        if not tracker.avTimerStartedAt then
+            return
+        end
+
+        local elapsed = GetTime() - tracker.avTimerStartedAt
+        if elapsed < AV_ZERO_HK_THRESHOLD_SECONDS then
+            return
+        end
+
+        RequestBattlefieldScoreData()
+    end)
+end
+
+-- =========================
+-- AV TRACKER UI
+-- =========================
+local avTrackerFrame = CreateFrame("Frame", "BGAVTrackerFrame", UIParent, "BackdropTemplate")
+avTrackerFrame:SetSize(260, 120)
+avTrackerFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -24, -220)
+avTrackerFrame:SetMovable(true)
+avTrackerFrame:EnableMouse(true)
+avTrackerFrame:RegisterForDrag("LeftButton")
+avTrackerFrame:SetScript("OnDragStart", avTrackerFrame.StartMoving)
+avTrackerFrame:SetScript("OnDragStop", avTrackerFrame.StopMovingOrSizing)
+avTrackerFrame:SetBackdrop({
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+    tile = true,
+    tileSize = 16,
+    edgeSize = 12,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 },
+})
+avTrackerFrame:SetBackdropColor(0, 0, 0, 0.7)
+avTrackerFrame:SetBackdropBorderColor(0.8, 0.8, 0.8, 0.9)
+avTrackerFrame:Hide()
+
+local avTitle = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+avTitle:SetPoint("TOPLEFT", avTrackerFrame, "TOPLEFT", 10, -10)
+avTitle:SetText("AV Tracker")
+
+local honorText = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+honorText:SetPoint("TOPLEFT", avTitle, "BOTTOMLEFT", 0, -8)
+honorText:SetJustifyH("LEFT")
+honorText:SetText("Honor earned: 0")
+
+local timerText = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+timerText:SetPoint("TOPLEFT", honorText, "BOTTOMLEFT", 0, -6)
+timerText:SetJustifyH("LEFT")
+timerText:SetText("Timer: waiting for battleground start")
+
+local suspectsText = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+suspectsText:SetPoint("TOPLEFT", timerText, "BOTTOMLEFT", 0, -8)
+suspectsText:SetWidth(236)
+suspectsText:SetJustifyH("LEFT")
+suspectsText:SetJustifyV("TOP")
+suspectsText:SetText("No suspicious players yet")
+
+local function UpdateTrackerUI()
+    if tracker.inAV then
+        avTrackerFrame:Show()
+    else
+        avTrackerFrame:Hide()
+        return
+    end
+
+    honorText:SetText(string.format("Honor earned: %d", tracker.honorEarned))
+
+    if tracker.avTimerStartedAt then
+        local elapsed = math.max(0, math.floor(GetTime() - tracker.avTimerStartedAt))
+        timerText:SetText(string.format("Timer: %d sec since start", elapsed))
+    else
+        timerText:SetText("Timer: waiting for battleground start")
+    end
+
+    local names = {}
+    for name, _ in pairs(tracker.flaggedPlayers) do
+        table.insert(names, name)
+    end
+
+    table.sort(names)
+
+    if #names == 0 then
+        suspectsText:SetText("No suspicious players yet")
+    else
+        suspectsText:SetText("No-HK after 5m: " .. table.concat(names, ", "))
+    end
+end
+
+local function UpdateAVState()
+    tracker.inAV = IsInAlteracValley()
+
+    if not tracker.inAV then
+        ResetTracker()
+    end
+
+    UpdateTrackerUI()
+end
+
+local function ParseHonorGain(msg)
+    if not msg then
+        return 0
+    end
+
+    local honorValue = msg:match("([%d]+)")
+    if honorValue then
+        return tonumber(honorValue) or 0
+    end
+
+    return 0
 end
 
 -- =========================
@@ -155,18 +302,46 @@ fade2:SetOrder(2)
 pulse:SetLooping("REPEAT")
 pulse:Play()
 
+EnsureAVTicker()
+
 -- =========================
--- BG COUNTDOWN
+-- BG COUNTDOWN + TRACKER EVENTS
 -- =========================
 f:SetScript("OnEvent", function(self, event, msg)
-
-    if event == "PLAYER_ENTERING_WORLD" then
+    if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
         triggered = false
+        UpdateAVState()
+        return
+    end
+
+    if event == "CHAT_MSG_COMBAT_HONOR_GAIN" and tracker.inAV then
+        tracker.honorEarned = tracker.honorEarned + ParseHonorGain(msg)
+        UpdateTrackerUI()
+        return
+    end
+
+    if event == "UPDATE_BATTLEFIELD_SCORE" and tracker.inAV and tracker.avTimerStartedAt then
+        local elapsed = GetTime() - tracker.avTimerStartedAt
+        if elapsed >= AV_ZERO_HK_THRESHOLD_SECONDS then
+            for i = 1, GetNumBattlefieldScores() do
+                local name, _, honorableKills = GetBattlefieldScore(i)
+                if name and honorableKills == 0 then
+                    tracker.flaggedPlayers[name] = true
+                end
+            end
+            UpdateTrackerUI()
+        end
+        return
     end
 
     if event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" and msg then
         if not triggered and string.find(msg, "30") then
             triggered = true
+
+            if tracker.inAV then
+                tracker.avTimerStartedAt = GetTime() + COUNTDOWN_DELAY
+                UpdateTrackerUI()
+            end
 
             C_Timer.After(COUNTDOWN_DELAY, function()
                 playCountdown()
