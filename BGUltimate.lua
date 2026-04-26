@@ -79,7 +79,7 @@ end
 -- =========================
 -- AV TRACKER UI
 -- =========================
-local avTrackerFrame = CreateFrame("Frame", "BGAVTrackerFrame", UIParent)
+local avTrackerFrame = CreateFrame("Frame", "BGAVTrackerFrame", UIParent, "BackdropTemplate")
 avTrackerFrame:SetSize(260, 120)
 avTrackerFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -24, -220)
 avTrackerFrame:SetMovable(true)
@@ -87,18 +87,16 @@ avTrackerFrame:EnableMouse(true)
 avTrackerFrame:RegisterForDrag("LeftButton")
 avTrackerFrame:SetScript("OnDragStart", avTrackerFrame.StartMoving)
 avTrackerFrame:SetScript("OnDragStop", avTrackerFrame.StopMovingOrSizing)
-if avTrackerFrame.SetBackdrop then
-    avTrackerFrame:SetBackdrop({
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-        tile = true,
-        tileSize = 16,
-        edgeSize = 12,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })
-    avTrackerFrame:SetBackdropColor(0, 0, 0, 0.7)
-    avTrackerFrame:SetBackdropBorderColor(0.8, 0.8, 0.8, 0.9)
-end
+avTrackerFrame:SetBackdrop({
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+    tile = true,
+    tileSize = 16,
+    edgeSize = 12,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 },
+})
+avTrackerFrame:SetBackdropColor(0, 0, 0, 0.7)
+avTrackerFrame:SetBackdropBorderColor(0.8, 0.8, 0.8, 0.9)
 avTrackerFrame:Hide()
 
 local avTitle = avTrackerFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -149,7 +147,7 @@ local function UpdateTrackerUI()
     if #names == 0 then
         suspectsText:SetText("No suspicious players yet")
     else
-        suspectsText:SetText("No-HK after 15m: " .. table.concat(names, ", "))
+        suspectsText:SetText("No-HK after 5m: " .. table.concat(names, ", "))
     end
 end
 
@@ -327,7 +325,7 @@ f:SetScript("OnEvent", function(self, event, msg)
         if elapsed >= AV_ZERO_HK_THRESHOLD_SECONDS then
             for i = 1, GetNumBattlefieldScores() do
                 local name, _, honorableKills = GetBattlefieldScore(i)
-                if name and honorableKills == 0 and not string.find(name, "*", 1, true) then
+                if name and honorableKills == 0 then
                     tracker.flaggedPlayers[name] = true
                 end
             end
